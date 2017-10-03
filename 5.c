@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -87,7 +88,7 @@ int main(int argc, char** argv)
 {
     if (argc != 2)
     {
-        puts("Usage: reader <filename>");
+        printf("Usage: %s <filename>\n", argv[0]);
         return 0;
     }
 
