@@ -120,7 +120,7 @@ int main(int argc, char** argv)
             char buf[1024];
             size_t len = file->size[string_number-1]; 
                     
-            if (lseek(file->fd, file->offset[string_number-1], SEEK_SET) == -1 || read(file->fd, buf, len) == -1)
+            if (lseek(file->fd, file->offset[string_number-1], SEEK_SET) == -1 || read(file->fd, buf, len) != len)
             {
                 puts("ERROR");
                 perror("Reading error");
