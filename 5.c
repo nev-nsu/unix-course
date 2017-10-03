@@ -8,55 +8,63 @@
 typedef struct 
 {
     int fd;
-    size_t length;
+    size_t lines_count;
     size_t offset[100];
-    size_t size[100]
+    size_t size[100];
 } FileTable;
+
+const int BUFFER_SIZE = 6;
 
 FileTable* read_file(const char* name)
 {
-    int fd = open(name, O_RDONLY);
-
-    if (fd == -1)
-    {
-        return NULL;
-    }
-
-    char ch;
     FileTable* file = (FileTable*) malloc(sizeof(FileTable));
 
     if (!file)
     {
         return NULL;
     }
+    
+    file->fd = open(name, O_RDONLY);
 
-    file->fd = fd;
-    file->length = 1;
-    file->offset[0] = 0;
-    size_t i = 0;
-
-    while (read(fd, &ch, 1))
+    if (file->fd == -1)
     {
-        i++;
+        free(file);
+        return NULL;
+    }
 
-        if (ch == '\n')
+    file->lines_count = 1;
+    file->offset[0] = 0;
+    char buf[BUFFER_SIZE];
+    size_t i = 0, line_offset = 0;
+    int nbytes = read(file->fd, buf, BUFFER_SIZE);
+
+    while (nbytes > 0)
+    {
+        for (const char* ch = buf; ch < buf + BUFFER_SIZE; ch++)
         {
-            off_t offset = lseek(fd, 0L, SEEK_CUR);
+            i++;
 
-            if (offset == -1)
+            if (*ch == '\n')
             {
-                free(file);
-                return NULL;
+                file->size[file->lines_count-1] = i;
+                line_offset += i;
+                file->offset[file->lines_count] = line_offset;
+                file->lines_count++;
+                i = 0;
             }
-
-            file->offset[file->length] = offset;
-            file->size[file->length-1] = i;
-            file->length++;
-            i = 0;
         }
+
+        nbytes = read(file->fd, buf, BUFFER_SIZE);
     }   
 
-    printf("File size: %d lines\n", file->length);
+    if (nbytes == -1)
+    {
+        close(file->fd);
+        free(file);
+        return NULL;
+    }
+
+    printf("File size: %d lines\n", file->lines_count);
     return file;
 }
 
@@ -88,7 +96,7 @@ int main(int argc, char** argv)
     if (!file)
     {
         perror("Can't read the input file");
-        exit(1);
+        return 0;
     }
 
     int string_number;
@@ -97,42 +105,36 @@ int main(int argc, char** argv)
     {  
         string_number = get_request();
 
-        if (string_number == 0)
-        {
-            close(file->fd);
-            free(file);
-            return 0;
-        }
-        else if (string_number < 0)
+        if (string_number < 0)
         {
             puts("ERROR\nBad line number, aborted.");
-            close(file->fd);
-            free(file);
-            return 1;
         }
-        
-        else if (file->length < string_number) // куда скастуется?
+        else if (file->lines_count < string_number) 
         {
             puts("ERROR\nLine not found");
-            close(file->fd);
-            free(file);
-            return 0; // какой тут должен быть код?
+            break;
         }
-        
-        char buf[256];
-        size_t len = file->size[string_number-1]; 
-                
-        if (lseek(file->fd, file->offset[string_number-1], SEEK_SET) == -1 || read(file->fd, buf, len) == -1)
+        else if (string_number > 0)
         {
-            puts("ERROR");
-            perror("Reading error");
-            close(file->fd);
-            free(file);
-            exit(1);
+            char buf[1024];
+            size_t len = file->size[string_number-1]; 
+                    
+            if (lseek(file->fd, file->offset[string_number-1], SEEK_SET) == -1 || read(file->fd, buf, len) == -1)
+            {
+                puts("ERROR");
+                perror("Reading error");
+                close(file->fd);
+                free(file);
+                return 1;
+            }
+            
+            puts("OK");
+            write(STDIN_FILENO, buf, len);
         }
-        
-        puts("OK");
-        write(STDIN_FILENO, buf, len);
     } 
-    while (string_number);
+    while (string_number > 0);
+
+    close(file->fd);
+    free(file);
+    return 0;
 }
