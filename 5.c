@@ -108,29 +108,35 @@ int main(int argc, char** argv)
 
         if (string_number < 0)
         {
-            puts("ERROR\nBad line number, aborted.");
+            puts("Bad line number, aborted.\nERROR");
         }
         else if (file->lines_count < string_number) 
         {
-            puts("ERROR\nLine not found");
+            puts("Line not found\nERROR");
             break;
         }
         else if (string_number > 0)
         {
-            char buf[1024];
-            size_t len = file->size[string_number-1]; 
-                    
-            if (lseek(file->fd, file->offset[string_number-1], SEEK_SET) == -1 || read(file->fd, buf, len) != len)
+            size_t len = file->size[string_number-1];
+
+            for (size_t i = 0; i < len; i += BUFFER_SIZE)
             {
-                puts("ERROR");
-                perror("Reading error");
-                close(file->fd);
-                free(file);
-                return 1;
+                char buf[BUFFER_SIZE];
+                size_t chunk = (len - i > BUFFER_SIZE)? BUFFER_SIZE : len - i;  
+
+                if (lseek(file->fd, file->offset[string_number-1] + i, SEEK_SET) == -1 || read(file->fd, buf, chunk) != chunk)
+                {
+                    perror("Reading error");
+                    puts("ERROR");
+                    close(file->fd);
+                    free(file);
+                    return 1;
+                }
+                
+                write(STDIN_FILENO, buf, chunk);
             }
             
             puts("OK");
-            write(STDIN_FILENO, buf, len);
         }
     } 
     while (string_number > 0);
