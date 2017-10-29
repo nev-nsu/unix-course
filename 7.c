@@ -11,7 +11,6 @@
 
 typedef struct 
 {
-    int fd;
     char* data;
     size_t size;
     size_t lines_count;
@@ -30,9 +29,9 @@ FileTable* read_file(const char* name)
         return NULL;
     }
     
-    file->fd = open(name, O_RDONLY);
+    int fd = open(name, O_RDONLY);
 
-    if (file->fd == -1)
+    if (fd == -1)
     {
         free(file);
         return NULL;
@@ -40,19 +39,19 @@ FileTable* read_file(const char* name)
 
     struct stat st;
 
-    if (fstat(file->fd, &st) < 0)
+    if (fstat(fd, &st) < 0)
     {
-        close(file->fd);
+        close(fd);
         free(file);
         return NULL;
     }
 
     file->size = (size_t) st.st_size;
-    file->data = (char*) mmap(NULL, file->size, PROT_READ, MAP_PRIVATE, file->fd, 0);
-
+    file->data = (char*) mmap(NULL, file->size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
+    
     if (file->data == MAP_FAILED)
     {
-        close(file->fd);
         free(file);
         return NULL;
     }
@@ -149,7 +148,6 @@ int main(int argc, char** argv)
             puts ("TIMEOUT");
             print_file(file);
             munmap(file->data, file->size);
-            close(file->fd);
             free(file);
             return 0;
         }
@@ -168,7 +166,6 @@ int main(int argc, char** argv)
     while (string_number > 0);
 
     munmap(file->data, file->size);
-    close(file->fd);
     free(file);
     return 0;
 }
