@@ -22,8 +22,6 @@ int main()
             perror("Child in process (error)");
             exit(EXIT_FAILURE);
         }
-
-        exit(EXIT_SUCCESS);
     }
     else
     {
