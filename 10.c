@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char** argv)
 {
@@ -11,16 +12,9 @@ int main(int argc, char** argv)
         exit(EXIT_SUCCESS);
     }
 
-    char* path = argv[1];
     char* args[argc];
-
-    for (int i = 1; i < argc; i++)
-    {
-        args[i-1] = argv[i];
-    }
-
+    memcpy(args, &argv[1], (argc - 1) * sizeof (char*));
     args[argc-1] = NULL;
-
     pid_t pid = fork();
     
     if (pid == -1)
@@ -30,7 +24,7 @@ int main(int argc, char** argv)
     }
     else if (pid == 0)
     {    
-        if (execv(path, args) == -1)
+        if (execv(argv[1], args) == -1)
         {
             perror("execv");
             exit(EXIT_FAILURE);

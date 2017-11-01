@@ -17,7 +17,7 @@ int main()
     {
         char* const argv[] = {"cat", "9.c", NULL};
         
-        if(execv("/usr/bin/cat", argv) == -1)
+        if(execvp("cat", argv) == -1)
         {
             perror("Child in process (error)");
             exit(EXIT_FAILURE);
