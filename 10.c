@@ -12,9 +12,6 @@ int main(int argc, char** argv)
         exit(EXIT_SUCCESS);
     }
 
-    char* args[argc];
-    memcpy(args, &argv[1], (argc - 1) * sizeof (char*));
-    args[argc-1] = NULL;
     pid_t pid = fork();
     
     if (pid == -1)
@@ -24,7 +21,7 @@ int main(int argc, char** argv)
     }
     else if (pid == 0)
     {    
-        if (execv(argv[1], args) == -1)
+        if (execv(argv[1], &argv[1]) == -1)
         {
             perror("execv");
             exit(EXIT_FAILURE);
