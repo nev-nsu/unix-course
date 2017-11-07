@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 const int BUF_SIZE = 100;
-const int sleep_time = 10;
 
 void client(int fildes[2])
 {
