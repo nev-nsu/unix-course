@@ -13,12 +13,9 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    // check file exist
-    // check grep exist
-
     char buf[BUF_SIZE];
     
-    if (snprintf(buf, BUF_SIZE, "grep -c '^$' %s ", argv[1]) < 0)
+    if (snprintf(buf, BUF_SIZE, "set -o pipefail; grep '^$' %s | wc -l", argv[1]) < 0)
     {
         perror("cmd line");
         return 1;
@@ -34,18 +31,28 @@ int main(int argc, char** argv)
 
     int num;
 
-    if (fscanf(fp, "%d", &num) == 1)
+    if (fscanf(fp, "%d", &num) != 1)
+    {
+        if (feof(fp))
+        {
+            puts("Unable to count lines");
+            return 1;
+        }
+        else
+        {
+            perror("get the result");
+            return 1;
+        }
+    }    
+    
+    int status = pclose(fp);
+
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
     {
         printf ("%d empty lines in %s\n", num, argv[1]);
     }
-    else if (feof(fp))
-    {
-        puts("Unable to count lines");
-        return 1;
-    }
     else
     {
-        perror("get the result");
-        return 1;
+        puts("Unable to count lines");
     }
 }
