@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <time.h>
 
 const int NUM_COUNT = 100;
 
@@ -36,10 +37,11 @@ int main()
         }
     }
 
-    if (fputc(EOF, fp[0]) == EOF)
+    fflush(0);
+
+    if (fclose(fp[0]))
     {
-        perror("fputc");
-        p2close(fp);
+        perror("fclose");
         return EXIT_FAILURE;
     }
 
