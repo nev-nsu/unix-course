@@ -70,4 +70,13 @@ int main(int argc, char** argv)
         perror("pclose");
         return 1;
     }
+
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+    {
+        puts("OK");
+    }
+    else
+    {
+        puts("Ooops... There was a mistake, don't trust the data.");
+    }
 }
