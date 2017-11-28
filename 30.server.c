@@ -40,6 +40,7 @@ int main(int argc, char** argv)
     }
 
     signal(SIGINT, cleanup);
+    signal(SIGTERM, cleanup);
     msg_t buffer;
 
     while (1)
@@ -47,6 +48,7 @@ int main(int argc, char** argv)
         if (msgrcv(message_queue_id, &buffer, sizeof(buffer.text), 0, 0) == -1)
         {
             perror("msgrcv");
+            msgctl(message_queue_id, IPC_RMID, 0);
             return EXIT_FAILURE;
         }
 
