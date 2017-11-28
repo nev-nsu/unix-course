@@ -79,7 +79,25 @@ int main()
 
     for (int i = 0; i < count; i++)
     {
-        msgsnd(message_queue_id, &buffer_from, 1, subscribers[i]);
+        buffer_from.type = subscribers[i];
+        msgsnd(message_queue_id, &buffer_from, 1, 0);
+    }
+
+    while (count)
+    {
+        msg_t buffer_to;
+        
+        if (msgrcv(message_queue_id, &buffer_to, sizeof(buffer_to.text), 1, 0) != -1)
+        {
+            int id = atoi(buffer_to.text);
+            
+            if (id < 0)
+            {
+                printf("Client %d was unsubscribed\n", -id);
+                count--;    
+            }
+        }
+
     }
 
     msgctl(message_queue_id, IPC_RMID, 0);

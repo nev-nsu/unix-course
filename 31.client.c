@@ -7,7 +7,7 @@
 #include <sys/msg.h>
 #include <sys/types.h>
 
-int subscribe(int mid, int id)
+int send_control_message(int mid, int id)
 {
     msg_t buffer;
     buffer.type = 1;
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 
     int pid = getpid();
 
-    if (subscribe(message_queue_id, pid) == -1)
+    if (send_control_message(message_queue_id, pid) == -1)
     {
         return EXIT_FAILURE;
     }
@@ -49,6 +49,7 @@ int main(int argc, char** argv)
     {
         if (buffer.text[0] == '0')
         {
+            send_control_message(message_queue_id, -pid);
             return EXIT_SUCCESS;
         }
 
